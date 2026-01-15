@@ -24,16 +24,31 @@ class _AdminHomeState extends State<AdminHome> {
     });
   }
 
+  void logout() {
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/',
+          (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA), // background ala repo
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
         title: const Text(
           'Admin Dashboard',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: logout,
+          ),
+        ],
       ),
       body: FutureBuilder<List<dynamic>>(
         future: future,

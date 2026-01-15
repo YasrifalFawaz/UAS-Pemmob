@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/booking_service.dart';
 
 class BookingPage extends StatefulWidget {
   final int userId;
@@ -14,11 +15,57 @@ class _BookingPageState extends State<BookingPage> {
   int duration = 1;
 
   static const int tarif = 300000;
-
   int get total => duration * tarif;
+
+  bool loading = false;
+
+  Future<void> submitBooking() async {
+    if (selectedDate == null || startTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lengkapi tanggal dan jam')),
+      );
+      return;
+    }
+
+    setState(() => loading = true);
+
+    final tanggal =
+    selectedDate!.toIso8601String().split('T')[0]; // yyyy-mm-dd
+    final jamMulai =
+        '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}:00';
+
+    final success = await ClientBookingService.createBooking(
+      userId: widget.userId,
+      tanggal: tanggal,
+      jamMulai: jamMulai,
+      durasi: duration,
+    );
+
+    setState(() => loading = false);
+
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking berhasil')),
+      );
+
+      setState(() {
+        selectedDate = null;
+        startTime = null;
+        duration = 1;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking gagal / jadwal bentrok')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Card(
@@ -44,14 +91,15 @@ class _BookingPageState extends State<BookingPage> {
                       : selectedDate!.toString().split(' ')[0],
                 ),
                 onTap: () async {
-                  final now = DateTime.now();
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: now,
-                    firstDate: now, // ⛔ TIDAK BISA TANGGAL LALU
+                    firstDate: now, // ⛔ tidak bisa tanggal lalu
                     lastDate: DateTime(now.year + 1),
                   );
-                  if (picked != null) setState(() => selectedDate = picked);
+                  if (picked != null) {
+                    setState(() => selectedDate = picked);
+                  }
                 },
               ),
 
@@ -68,7 +116,9 @@ class _BookingPageState extends State<BookingPage> {
                     context: context,
                     initialTime: TimeOfDay.now(),
                   );
-                  if (picked != null) setState(() => startTime = picked);
+                  if (picked != null) {
+                    setState(() => startTime = picked);
+                  }
                 },
               ),
 
@@ -84,10 +134,10 @@ class _BookingPageState extends State<BookingPage> {
                     items: [1, 2, 3, 4]
                         .map(
                           (d) => DropdownMenuItem(
-                            value: d,
-                            child: Text('$d'),
-                          ),
-                        )
+                        value: d,
+                        child: Text('$d'),
+                      ),
+                    )
                         .toList(),
                     onChanged: (v) => setState(() => duration = v!),
                   ),
@@ -112,6 +162,7 @@ class _BookingPageState extends State<BookingPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  onPressed: loading ? null : submitBooking,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: Colors.blue,
@@ -119,15 +170,14 @@ class _BookingPageState extends State<BookingPage> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  onPressed: () {
-                    // TODO: panggil API booking
-                  },
-                  child: const Text(
+                  child: loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
                     'BOOKING SEKARANG',
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
