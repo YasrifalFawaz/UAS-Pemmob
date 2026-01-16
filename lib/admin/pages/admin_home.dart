@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_page.dart';
 import 'booking_list_page.dart';
+import 'user_list_page.dart';
 // Pastikan path import ini sesuai dengan lokasi file login Anda
 // import '../../services/login_register_page.dart'; 
 
@@ -23,6 +24,8 @@ class _AdminHomeState extends State<AdminHome> {
     _pages = [
       const DashboardPage(),
       const BookingListPage(),
+      const UserListPage(),
+
     ];
   }
 
@@ -63,6 +66,10 @@ class _AdminHomeState extends State<AdminHome> {
           BottomNavigationBarItem(
             icon: Icon(Icons.event),
             label: 'Booking',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: 'User',
           ),
         ],
       ),
