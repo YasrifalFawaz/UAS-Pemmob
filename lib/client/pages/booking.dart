@@ -11,7 +11,7 @@ class BookingPage extends StatefulWidget {
 
 class _BookingPageState extends State<BookingPage> {
   DateTime? selectedDate;
-  TimeOfDay? startTime;
+  int? startHour; // pakai jam saja (int)
   int duration = 1;
 
   static const int tarif = 300000;
@@ -19,8 +19,62 @@ class _BookingPageState extends State<BookingPage> {
 
   bool loading = false;
 
+  bool isTodaySelected() {
+    if (selectedDate == null) return false;
+    final now = DateTime.now();
+    return selectedDate!.year == now.year &&
+        selectedDate!.month == now.month &&
+        selectedDate!.day == now.day;
+  }
+
+  List<int> availableHours() {
+    final now = DateTime.now();
+    int start = 0;
+
+    if (isTodaySelected()) {
+      start = now.hour + 1;
+    }
+
+    return List.generate(24 - start, (i) => start + i);
+  }
+
+  Future<void> pickStartHour() async {
+    final hours = availableHours();
+
+    if (hours.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tidak ada jam tersedia hari ini')),
+      );
+      return;
+    }
+
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) {
+        return SizedBox(
+          height: 350,
+          child: ListView.builder(
+            itemCount: hours.length,
+            itemBuilder: (_, i) {
+              final h = hours[i];
+              return ListTile(
+                title: Text('${h.toString().padLeft(2, '0')}:00'),
+                onTap: () => Navigator.pop(context, h),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() => startHour = picked);
+    }
+  }
+
   Future<void> submitBooking() async {
-    if (selectedDate == null || startTime == null) {
+    if (selectedDate == null || startHour == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lengkapi tanggal dan jam')),
       );
@@ -29,10 +83,8 @@ class _BookingPageState extends State<BookingPage> {
 
     setState(() => loading = true);
 
-    final tanggal =
-    selectedDate!.toIso8601String().split('T')[0]; // yyyy-mm-dd
-    final jamMulai =
-        '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}:00';
+    final tanggal = selectedDate!.toIso8601String().split('T')[0];
+    final jamMulai = '${startHour!.toString().padLeft(2, '0')}:00:00';
 
     final success = await ClientBookingService.createBooking(
       userId: widget.userId,
@@ -45,20 +97,18 @@ class _BookingPageState extends State<BookingPage> {
 
     if (!mounted) return;
 
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Booking berhasil')),
-      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success ? 'Booking berhasil' : 'Booking gagal / bentrok'),
+      ),
+    );
 
+    if (success) {
       setState(() {
         selectedDate = null;
-        startTime = null;
+        startHour = null;
         duration = 1;
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Booking gagal / jadwal bentrok')),
-      );
     }
   }
 
@@ -94,54 +144,58 @@ class _BookingPageState extends State<BookingPage> {
                   final picked = await showDatePicker(
                     context: context,
                     initialDate: now,
-                    firstDate: now, // ⛔ tidak bisa tanggal lalu
+                    firstDate: now,
                     lastDate: DateTime(now.year + 1),
                   );
                   if (picked != null) {
-                    setState(() => selectedDate = picked);
+                    setState(() {
+                      selectedDate = picked;
+                      startHour = null;
+                    });
                   }
                 },
               ),
 
-              /// JAM MULAI
+              /// JAM MULAI (SCROLL)
               ListTile(
                 leading: const Icon(Icons.access_time),
                 title: Text(
-                  startTime == null
+                  startHour == null
                       ? 'Pilih jam mulai'
-                      : startTime!.format(context),
+                      : '${startHour!.toString().padLeft(2, '0')}:00',
                 ),
-                onTap: () async {
-                  final picked = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (picked != null) {
-                    setState(() => startTime = picked);
-                  }
-                },
+                onTap: pickStartHour,
               ),
 
-              /// DURASI
-              Row(
-                children: [
-                  const Icon(Icons.timer),
-                  const SizedBox(width: 12),
-                  const Text('Durasi (jam)'),
-                  const Spacer(),
-                  DropdownButton<int>(
-                    value: duration,
-                    items: [1, 2, 3, 4]
-                        .map(
-                          (d) => DropdownMenuItem(
-                        value: d,
-                        child: Text('$d'),
+              /// DURASI (DROPDOWN FULL WIDTH)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer),
+                    const SizedBox(width: 12),
+                    const Text('Durasi'),
+                    const Spacer(),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: duration,
+                        items: List.generate(
+                          24,
+                          (i) => DropdownMenuItem(
+                            value: i + 1,
+                            child: Text('${i + 1} jam'),
+                          ),
+                        ),
+                        onChanged: (v) => setState(() => duration = v!),
                       ),
-                    )
-                        .toList(),
-                    onChanged: (v) => setState(() => duration = v!),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
 
               const Divider(height: 32),
@@ -173,9 +227,9 @@ class _BookingPageState extends State<BookingPage> {
                   child: loading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                    'BOOKING SEKARANG',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                          'BOOKING SEKARANG',
+                          style: TextStyle(fontSize: 16),
+                        ),
                 ),
               ),
             ],
