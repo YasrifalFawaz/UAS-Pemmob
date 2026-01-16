@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/booking_service.dart';
-import '../widgets/booking_card.dart';
+import 'dashboard_page.dart';
+import 'booking_list_page.dart';
+// Pastikan path import ini sesuai dengan lokasi file login Anda
+// import '../../services/login_register_page.dart'; 
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -10,77 +12,59 @@ class AdminHome extends StatefulWidget {
 }
 
 class _AdminHomeState extends State<AdminHome> {
-  late Future<List<dynamic>> future;
+  int _index = 0;
+
+  // Hapus 'const' agar tidak menyebabkan error "Not a constant expression"
+  late final List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    future = AdminBookingService.getAll();
+    _pages = [
+      const DashboardPage(),
+      const BookingListPage(),
+    ];
   }
 
-  void refresh() {
-    setState(() {
-      future = AdminBookingService.getAll();
-    });
-  }
-
+  // Fungsi logout untuk kembali ke halaman login (rute '/')
   void logout() {
     Navigator.pushNamedAndRemoveUntil(
       context,
-      '/',
-          (route) => false,
+      '/', // Mengarahkan ke rute login awal
+      (route) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
-        title: const Text(
-          'Admin Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
+        title: const Text('Admin Panel'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
+            icon: const Icon(Icons.logout), 
             onPressed: logout,
-          ),
+          )
         ],
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: future,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text(
-                'Belum ada booking',
-                style: TextStyle(fontSize: 16),
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              final booking = snapshot.data![index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: BookingCard(
-                  booking: booking,
-                  onRefresh: refresh,
-                ),
-              );
-            },
-          );
-        },
+      body: _pages[_index],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _index,
+        onTap: (i) => setState(() => _index = i),
+        backgroundColor: Colors.blue, 
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white70,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.event),
+            label: 'Booking',
+          ),
+        ],
       ),
     );
   }
