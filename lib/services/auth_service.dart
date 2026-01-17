@@ -17,7 +17,8 @@ class AuthService {
     return null;
   }
 
-  static Future<bool> register(
+  // PERBAIKAN: Register sekarang mengembalikan data user seperti login
+  static Future<Map<String, dynamic>?> register(
       String nama, String email, String password) async {
     final res = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/register'),
@@ -28,6 +29,11 @@ class AuthService {
         'password': password,
       }),
     );
-    return res.statusCode == 200;
+    
+    if (res.statusCode == 200) {
+      // Kembalikan data user (id, role, dll) dari response
+      return jsonDecode(res.body);
+    }
+    return null;
   }
 }
