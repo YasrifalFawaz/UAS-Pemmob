@@ -10,6 +10,10 @@ class ClientBookingService {
       
       final res = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/bookings/user/$userId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
 
       print('📥 Response status: ${res.statusCode}');
@@ -46,7 +50,10 @@ class ClientBookingService {
       
       final res = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/bookings'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: jsonEncode(payload),
       );
       
@@ -76,6 +83,10 @@ class AdminBookingService {
       
       final res = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/bookings'),
+        headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       );
 
       print('📥 Response status: ${res.statusCode}');
@@ -98,7 +109,10 @@ class AdminBookingService {
       
       final res = await http.put(
         Uri.parse('${ApiConfig.baseUrl}/bookings/$bookingId/approve'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       );
 
       print('📥 Approve response: ${res.statusCode}');
@@ -123,7 +137,10 @@ class AdminBookingService {
       
       final res = await http.put(
         Uri.parse('${ApiConfig.baseUrl}/bookings/$bookingId/reject'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       );
 
       print('📥 Reject response: ${res.statusCode}');
@@ -148,7 +165,10 @@ class AdminBookingService {
       
       final res = await http.delete(
         Uri.parse('${ApiConfig.baseUrl}/bookings/$bookingId'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       );
 
       if (res.statusCode == 200) {

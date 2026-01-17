@@ -7,6 +7,10 @@ class ClientBookingService {
     try {
       final res = await http.get(
         Uri.parse('${ApiConfig.baseUrl}/bookings/user/$userId'),
+        headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        },
       );
 
       if (res.statusCode == 200) {
@@ -27,7 +31,10 @@ class ClientBookingService {
     try {
       final res = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/bookings'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: jsonEncode({
           'user_id': userId,
           'tanggal': tanggal,

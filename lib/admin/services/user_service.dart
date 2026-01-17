@@ -6,6 +6,10 @@ class AdminUserService {
   static Future<List<dynamic>> getAll() async {
     final res = await http.get(
       Uri.parse('${ApiConfig.baseUrl}/users'),
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
     );
     return res.statusCode == 200 ? jsonDecode(res.body) : [];
   }
@@ -18,7 +22,10 @@ class AdminUserService {
   ) async {
     final res = await http.post(
       Uri.parse('${ApiConfig.baseUrl}/users'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       body: jsonEncode({
         'nama': nama,
         'email': email,
@@ -42,7 +49,10 @@ static Future<bool> update(
   ) async {
     final res = await http.put(
       Uri.parse('${ApiConfig.baseUrl}/users/$id'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       body: jsonEncode({
         'nama': nama,
         'email': email,
@@ -60,6 +70,10 @@ static Future<bool> update(
   static Future<bool> delete(int id) async {
     final res = await http.delete(
       Uri.parse('${ApiConfig.baseUrl}/users/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
     );
     return res.statusCode == 200;
   }
